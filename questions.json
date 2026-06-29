@@ -1,0 +1,98 @@
+[
+    {
+        "isAnswered": true,
+        "title": "Как посрать в общественном туалете бесшумно и аккуратно",
+        "type": "long",
+        "variants": [
+            "Сесть на закрытый талкан",
+            "Постелить бумагу в унитаз",
+            "Покакать в раковину",
+            "Не какать"
+        ],
+        "answererNickname": "@the_g00se",
+        "answererPicUrl": "https://api.telegram.org/file/bot8931521574:AAGKUzeBXpNTLuUVqBEl4kmbx3U261C8h_0/photos/file_0.jpg",
+        "answererAccount": "https://t.me/the_g00se",
+        "correctAnswerIndex": 2,
+        "answererMessage": ""
+    },
+    {
+        "isAnswered": true,
+        "title": "Отвеченный вопрос",
+        "type": "long",
+        "variants": [
+            "Сесть на закрытый талкан",
+            "Постелить бумагу в унитаз",
+            "Покакать в раковину",
+            "Не какать"
+        ],
+        "correctAnswerIndex": 3,
+        "answererNickname": "penis",
+        "answererPicUrl": "https://i.pinimg.com/1200x/94/34/64/94346416c9fd85dca096eae8cc949a36.jpg",
+        "answererMessage": "С любовью к калу"
+    },
+    {
+        "isAnswered": false,
+        "title": "Как выжить на работе, если начальник — рептилоид?",
+        "type": "long",
+        "variants": [
+            "Носить фольговую шапочку",
+            "Поить его чаем с чесноком",
+            "Подлизываться и надеяться на лучшее",
+            "Уволиться и стать фрилансером"
+        ]
+    },
+    {
+        "isAnswered": false,
+        "title": "Как открыть пивную банку без открывашки?",
+        "type": "short",
+        "variants": [
+            "Зубом",
+            "Об край стола",
+            "Ногтем",
+            "Позвать друга"
+        ]
+    },
+    {
+        "isAnswered": false,
+        "title": "Как понять, что кот тебя ненавидит?",
+        "type": "long",
+        "variants": [
+            "Он смотрит на тебя полуприкрытыми глазами",
+            "Сбрасывает вещи со стола",
+            "Громко мяукает под дверью",
+            "Трётся о ноги и мурлычет"
+        ]
+    },
+    {
+        "isAnswered": true,
+        "title": "Как быстро выучить 100 слов на китайском?",
+        "type": "short",
+        "variants": [
+            "Смотреть дорамы",
+            "Читать надписи на китайских товарах",
+            "Выучить 10 слов в день",
+            "Скачать приложение и выучить 100 за ночь"
+        ],
+        "answererNickname": "@the_g00se",
+        "answererPicUrl": "https://api.telegram.org/file/bot8931521574:AAGKUzeBXpNTLuUVqBEl4kmbx3U261C8h_0/photos/file_0.jpg",
+        "answererAccount": "https://t.me/the_g00se",
+        "correctAnswerIndex": 0,
+        "answererMessage": "с днем рождения тебя, милашечка!! очень сильно люблю и скучаю 🥺\nэто тестовое сообщение на случай, если что-то сломается от обилия текста"
+    },
+    {
+        "isAnswered": true,
+        "title": "Как сделать так, чтобы комары не кусали?",
+        "type": "long",
+        "variants": [
+            "Надеть москитную сетку на лицо",
+            "Использовать фумигатор",
+            "Обмазаться чесноком",
+            "Никак, комары всегда побеждают"
+        ],
+        "answererNickname": "макс 🪿",
+        "answererPicUrl": "https://api.telegram.org/file/bot8931521574:AAGKUzeBXpNTLuUVqBEl4kmbx3U261C8h_0/photos/file_0.jpg",
+        "answererAccount": "https://t.me/the_g00se",
+        "correctAnswerIndex": 3,
+        "answererMessage": "с днем рождения тебя, милашечка!! очень сильно люблю и скучаю 🥺\nэто тестовое сообщение на случай, если что-то сломается от обилия текста"
+    }
+]
