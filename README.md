@@ -33,3 +33,9 @@ npm start
 - `correctAnswerIndex`
 - `answererMessage`
 - `isAnswered: true`
+
+## Avatars
+
+If a Telegram profile photo exists, the bot downloads it, resizes it to
+`256x256`, saves it as JPEG in `avatars/`, and writes the local path to
+`answererPicUrl`.

@@ -1,9 +1,13 @@
 const fs = require('node:fs/promises');
 const path = require('node:path');
+const sharp = require('sharp');
 const { Telegraf, Markup, session } = require('telegraf');
 require('dotenv').config();
 
 const QUESTIONS_FILE = path.join(__dirname, 'questions.json');
+const AVATARS_DIR = path.join(__dirname, 'avatars');
+const AVATARS_PUBLIC_PATH = 'avatars';
+const AVATAR_SIZE = 256;
 const MAX_MESSAGE_LENGTH = 150;
 const ANSWER_PREFIX = 'answer';
 const MESSAGE_PREFIX = 'message';
@@ -57,10 +61,35 @@ async function getUserPicUrl(ctx) {
   if (photos.total_count) {
     const photoSizes = photos.photos[0];
     const largestPhoto = photoSizes[photoSizes.length - 1];
-    picUrl = (await ctx.telegram.getFileLink(largestPhoto.file_id)).href;
+    picUrl = await saveUserPic(ctx, largestPhoto.file_id);
   }
 
   return picUrl;
+}
+
+async function downloadFile(fileUrl) {
+  const response = await fetch(fileUrl);
+
+  if (!response.ok) {
+    throw new Error(`Failed to download file: ${response.status} ${response.statusText}`);
+  }
+
+  return Buffer.from(await response.arrayBuffer());
+}
+
+async function saveUserPic(ctx, fileId) {
+  const fileUrl = await ctx.telegram.getFileLink(fileId);
+  const imageBuffer = await downloadFile(fileUrl);
+  const fileName = `telegram_${ctx.from.id}.jpg`;
+  const filePath = path.join(AVATARS_DIR, fileName);
+
+  await fs.mkdir(AVATARS_DIR, { recursive: true });
+  await sharp(imageBuffer)
+    .resize(AVATAR_SIZE, AVATAR_SIZE, { fit: 'cover' })
+    .jpeg({ quality: 85 })
+    .toFile(filePath);
+
+  return `${AVATARS_PUBLIC_PATH}/${fileName}`;
 }
 
 async function buildAnswererInfo(ctx) {
