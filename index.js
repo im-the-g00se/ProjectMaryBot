@@ -104,6 +104,7 @@ async function askRandomQuestion(ctx) {
 
   if (!unansweredIndexes.length) {
     await ctx.reply('мне очень жаль, но все вопросы кончились(');
+    await ctx.reply('если у тебя есть идеи для вопроса, напиши мне: @the_g00se');
     return;
   }
 
@@ -121,6 +122,8 @@ async function askRandomQuestion(ctx) {
 async function startDialog(ctx) {
   resetSession(ctx);
   await ctx.reply('привет!\nспасибо за то, что ты не против помочь мне сделать небольшой сюрприз для Маши\nя уверен, ей будет очень приятно)');
+  await ctx.reply('основная идея подарка заключается в том, чтобы люди, которые знакомы с Машей, попытались представить, как бы Маша ответила на какой-нибудь из вопросов');
+  await ctx.reply('то есть Маша должна будет угадать, как, по мнению человека из ее окружения, ответила бы она на вопрос');
   await ctx.reply('сейчас проверю, есть ли вопрос для тебя');
   await askRandomQuestion(ctx);
 }
@@ -144,6 +147,7 @@ async function saveAnswer(ctx, message) {
   await writeQuestions(questions);
   resetSession(ctx);
   await ctx.reply('спасибо! записал ответ)');
+  await ctx.reply('если у тебя есть идеи для вопроса, напиши мне: @the_g00se');
 }
 
 bot.start(async (ctx) => {
