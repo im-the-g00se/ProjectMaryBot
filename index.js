@@ -4,8 +4,8 @@ const sharp = require('sharp');
 const { Telegraf, Markup, session } = require('telegraf');
 require('dotenv').config();
 
-const QUESTIONS_FILE = path.join(__dirname, 'questions.json');
-const AVATARS_DIR = path.join(__dirname, 'avatars');
+const QUESTIONS_FILE = path.join(__dirname, 'data/questions.json');
+const AVATARS_DIR = path.join(__dirname, 'data/avatars');
 const AVATARS_PUBLIC_PATH = '/avatars';
 const AVATAR_SIZE = 256;
 const MAX_MESSAGE_LENGTH = 150;

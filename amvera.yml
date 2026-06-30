@@ -1,0 +1,16 @@
+meta:
+  environment: nodejs
+  toolchain:
+    name: npm
+    version: "20"
+build:
+  skip: true
+  artifacts:
+    "*": /
+run:
+  persistenceMount: /data
+  scriptName: index.js
+  scriptArguments: null
+  nodeArguments: null
+  command: null
+  containerPort: 80
