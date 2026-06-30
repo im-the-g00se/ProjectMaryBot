@@ -4,8 +4,9 @@ const sharp = require('sharp');
 const { Telegraf, Markup, session } = require('telegraf');
 require('dotenv').config();
 
-const QUESTIONS_FILE = path.join(__dirname, 'data/questions.json');
-const AVATARS_DIR = path.join(__dirname, 'data/avatars');
+const QUESTIONS_FILE = path.join(__dirname, 'questions.json');
+const ANSWERS_FILE = '/data/answers.json';
+const AVATARS_DIR = '/data/avatars';
 const AVATARS_PUBLIC_PATH = '/avatars';
 const AVATAR_SIZE = 256;
 const MAX_MESSAGE_LENGTH = 150;
@@ -28,14 +29,32 @@ async function readQuestions() {
   return JSON.parse(fileContent);
 }
 
-async function writeQuestions(questions) {
-  const fileContent = JSON.stringify(questions, null, 4);
-  await fs.writeFile(QUESTIONS_FILE, `${fileContent}\n`, 'utf8');
+async function readAnswers() {
+  let answers = [];
+
+  try {
+    const fileContent = await fs.readFile(ANSWERS_FILE, 'utf8');
+    answers = JSON.parse(fileContent);
+  } catch (error) {
+    if (error.code !== 'ENOENT') {
+      throw error;
+    }
+  }
+
+  return answers;
 }
 
-function getUnansweredQuestionIndexes(questions) {
+async function writeAnswers(answers) {
+  const fileContent = JSON.stringify(answers, null, 4);
+  // await fs.mkdir(DATA_DIR, { recursive: true });
+  await fs.writeFile(ANSWERS_FILE, `${fileContent}\n`, 'utf8');
+}
+
+function getUnansweredQuestionIndexes(questions, answers) {
+  const answeredIndexes = new Set(answers.map((answer) => answer.questionIndex));
+
   return questions
-    .map((question, index) => (question.isAnswered ? -1 : index))
+    .map((question, index) => (question.isAnswered || answeredIndexes.has(index) ? -1 : index))
     .filter((index) => index !== -1);
 }
 
@@ -131,9 +150,11 @@ function resetSession(ctx) {
 
 async function askQuestionByIndex(ctx, questionIndex) {
   const questions = await readQuestions();
+  const answers = await readAnswers();
   const question = questions[questionIndex];
+  const hasAnswer = answers.some((answer) => answer.questionIndex === questionIndex);
 
-  if (!question || question.isAnswered) {
+  if (!question || question.isAnswered || hasAnswer) {
     await ctx.reply('сорри, этот вопрос уже недоступен((\nнажми /start, чтобы взять другой вопрос');
     resetSession(ctx);
     return;
@@ -153,7 +174,8 @@ async function askQuestionByIndex(ctx, questionIndex) {
 
 async function askRandomQuestion(ctx) {
   const questions = await readQuestions();
-  const unansweredIndexes = getUnansweredQuestionIndexes(questions);
+  const answers = await readAnswers();
+  const unansweredIndexes = getUnansweredQuestionIndexes(questions, answers);
 
   if (!unansweredIndexes.length) {
     await ctx.reply('мне очень жаль, но все вопросы кончились(');
@@ -177,21 +199,26 @@ async function startDialog(ctx) {
 
 async function saveAnswer(ctx, message) {
   const questions = await readQuestions();
+  const answers = await readAnswers();
   const question = questions[ctx.session.questionIndex];
+  const hasAnswer = answers.some((answer) => answer.questionIndex === ctx.session.questionIndex);
 
-  if (!question || question.isAnswered) {
+  if (!question || question.isAnswered || hasAnswer) {
     await ctx.reply('сорри, этот вопрос уже недоступен((\nнажми /start, чтобы взять другой вопрос');
     resetSession(ctx);
     return;
   }
 
-  Object.assign(question, ctx.session.answererInfo, {
+  answers.push({
+    ...question,
+    questionIndex: ctx.session.questionIndex,
+    ...ctx.session.answererInfo,
     correctAnswerIndex: ctx.session.answerIndex,
     answererMessage: message,
     isAnswered: true,
   });
 
-  await writeQuestions(questions);
+  await writeAnswers(answers);
   resetSession(ctx);
   await ctx.reply('спасибо! записал ответ)');
   await ctx.reply('если у тебя есть идеи для вопроса, напиши мне: @the_g00se');
