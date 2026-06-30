@@ -34,8 +34,10 @@ npm start
 - `answererMessage`
 - `isAnswered: true`
 
-## Avatars
+## Аватарки
 
-If a Telegram profile photo exists, the bot downloads it, resizes it to
-`256x256`, saves it as JPEG in `avatars/`, and writes the local path to
-`answererPicUrl`.
+Если аватарка (фото профиля) в Telegram существует, бот скачивает её, изменяет размер до `256x256`, сохраняет как JPEG в папку `avatars/` и записывает локальный путь в `answererPicUrl`.
+
+Это сделано для того, чтобы:
+1) не зависеть от API Telegram, который в РФ не работает без трёх весёлых букв
+2) исключить возможность слить токен бота, в связи с тем, что изначально я этой возможностью радостно воспользовался..

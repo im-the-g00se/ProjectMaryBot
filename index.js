@@ -6,11 +6,12 @@ require('dotenv').config();
 
 const QUESTIONS_FILE = path.join(__dirname, 'questions.json');
 const AVATARS_DIR = path.join(__dirname, 'avatars');
-const AVATARS_PUBLIC_PATH = 'avatars';
+const AVATARS_PUBLIC_PATH = '/avatars';
 const AVATAR_SIZE = 256;
 const MAX_MESSAGE_LENGTH = 150;
 const ANSWER_PREFIX = 'answer';
 const MESSAGE_PREFIX = 'message';
+const CONFIRM_PREFIX = 'confirm';
 
 const botToken = process.env.BOT_TOKEN;
 
@@ -110,11 +111,11 @@ function buildAnswerKeyboard(questionIndex, variants) {
   return Markup.inlineKeyboard(buttons);
 }
 
-function buildMessageKeyboard() {
+function buildYesNoKeyboard(prefix) {
   return Markup.inlineKeyboard([
     [
-      Markup.button.callback('Да', `${MESSAGE_PREFIX}:yes`),
-      Markup.button.callback('Нет', `${MESSAGE_PREFIX}:no`),
+      Markup.button.callback('Да', `${prefix}:yes`),
+      Markup.button.callback('Нет', `${prefix}:no`),
     ],
   ]);
 }
@@ -123,8 +124,31 @@ function resetSession(ctx) {
   ctx.session.answererInfo = null;
   ctx.session.questionIndex = null;
   ctx.session.answerIndex = null;
+  ctx.session.pendingMessage = null;
   ctx.session.waitingForMessage = false;
   ctx.session.messageToEditId = null;
+}
+
+async function askQuestionByIndex(ctx, questionIndex) {
+  const questions = await readQuestions();
+  const question = questions[questionIndex];
+
+  if (!question || question.isAnswered) {
+    await ctx.reply('сорри, этот вопрос уже недоступен((\nнажми /start, чтобы взять другой вопрос');
+    resetSession(ctx);
+    return;
+  }
+
+  ctx.session.questionIndex = questionIndex;
+  ctx.session.answerIndex = null;
+  ctx.session.pendingMessage = null;
+  ctx.session.waitingForMessage = false;
+  ctx.session.messageToEditId = null;
+
+  await ctx.reply(
+    `${question.title}\n\nответь так, как ответила бы Маша`,
+    buildAnswerKeyboard(questionIndex, question.variants),
+  );
 }
 
 async function askRandomQuestion(ctx) {
@@ -138,21 +162,15 @@ async function askRandomQuestion(ctx) {
   }
 
   const questionIndex = getRandomItem(unansweredIndexes);
-  const question = questions[questionIndex];
-  ctx.session.questionIndex = questionIndex;
   ctx.session.answererInfo = await buildAnswererInfo(ctx);
-
-  await ctx.reply(
-    `${question.title}\n\nответь так, как ответила бы Маша`,
-    buildAnswerKeyboard(questionIndex, question.variants),
-  );
+  await askQuestionByIndex(ctx, questionIndex);
 }
 
 async function startDialog(ctx) {
   resetSession(ctx);
-  await ctx.reply('привет!\nспасибо за то, что ты не против помочь мне сделать небольшой сюрприз для Маши\nя уверен, ей будет очень приятно)');
-  await ctx.reply('основная идея подарка заключается в том, чтобы люди, которые знакомы с Машей, попытались представить, как бы Маша ответила на какой-нибудь из вопросов');
-  await ctx.reply('то есть Маша должна будет угадать, как, по мнению человека из ее окружения, ответила бы она на вопрос');
+  await ctx.reply('привет!\nспасибо за то, что ты не против помочь мне сделать небольшой подарок для Маши\nя уверен, ей будет очень приятно)');
+  await ctx.reply('в общем\nмне нужно, чтобы ты попробовал(а) представить, как Маша ответила бы на один вопрос');
+  await ctx.reply('не переживай, если ты не уверен(а) в своем ответе)\nответ не обязательно должен быть на 100% совпадающим с тем, что выбрала бы сама Маша, иначе было бы неинтересно)');
   await ctx.reply('сейчас проверю, есть ли вопрос для тебя');
   await askRandomQuestion(ctx);
 }
@@ -179,6 +197,41 @@ async function saveAnswer(ctx, message) {
   await ctx.reply('если у тебя есть идеи для вопроса, напиши мне: @the_g00se');
 }
 
+function buildConfirmText(question, answerIndex, message) {
+  const userMessage = message ? `\nСообщение:\n${message}` : '';
+
+  return [
+    'Проверь, пожалуйста, все ли правильно:',
+    '',
+    `Вопрос:\n${question.title}`,
+    '',
+    `Ответ:\n${question.variants[answerIndex]}`,
+    userMessage,
+    '',
+    'Записать этот ответ?',
+  ].join('\n');
+}
+
+async function askForConfirmation(ctx, message) {
+  const questions = await readQuestions();
+  const question = questions[ctx.session.questionIndex];
+
+  if (!question || question.isAnswered) {
+    await ctx.reply('сорри, этот вопрос уже недоступен((\nнажми /start, чтобы взять другой вопрос');
+    resetSession(ctx);
+    return;
+}
+
+  ctx.session.pendingMessage = message;
+  ctx.session.waitingForMessage = false;
+  ctx.session.messageToEditId = null;
+
+  await ctx.reply(
+    buildConfirmText(question, ctx.session.answerIndex, message),
+    buildYesNoKeyboard(CONFIRM_PREFIX),
+  );
+}
+
 bot.start(async (ctx) => {
   await startDialog(ctx);
 });
@@ -194,7 +247,7 @@ bot.action(new RegExp(`^${ANSWER_PREFIX}:(\\d+):(\\d+)$`), async (ctx) => {
 
   ctx.session.answerIndex = answerIndex;
   await ctx.answerCbQuery('записал)');
-  await ctx.reply(`хочешь оставить небольшое сообщение (до ${MAX_MESSAGE_LENGTH} символов)?`, buildMessageKeyboard());
+  await ctx.reply(`было бы очень здорово, если бы ты еще и оставил(а) сообщение с пояснением, почему выбрал(а) именно этот вариант\nили просто с поздравлением)\nхочешь?`, buildYesNoKeyboard(MESSAGE_PREFIX));
 });
 
 bot.action(new RegExp(`^${MESSAGE_PREFIX}:(yes|no)$`), async (ctx) => {
@@ -207,12 +260,29 @@ bot.action(new RegExp(`^${MESSAGE_PREFIX}:(yes|no)$`), async (ctx) => {
   }
 
   if (!wantsMessage) {
-    await saveAnswer(ctx, '');
+    await askForConfirmation(ctx, '');
     return;
   }
 
   ctx.session.waitingForMessage = true;
   await ctx.reply(`напиши сообщение (максимум ${MAX_MESSAGE_LENGTH} символов)`);
+});
+
+bot.action(new RegExp(`^${CONFIRM_PREFIX}:(yes|no)$`), async (ctx) => {
+  const isConfirmed = ctx.match[1] === 'yes';
+  await ctx.answerCbQuery();
+
+  if (!ctx.session.answererInfo || ctx.session.answerIndex === null) {
+    await ctx.reply('сначала нужно выбрать ответ\nнажми /start, чтобы начать заново.');
+    return;
+}
+
+  if (isConfirmed) {
+    await saveAnswer(ctx, ctx.session.pendingMessage || '');
+    return;
+  }
+
+  await askQuestionByIndex(ctx, ctx.session.questionIndex);
 });
 
 async function handleAnswererMessage(ctx, text, messageId) {
@@ -225,7 +295,7 @@ async function handleAnswererMessage(ctx, text, messageId) {
   }
 
   ctx.session.messageToEditId = null;
-  await saveAnswer(ctx, message);
+  await askForConfirmation(ctx, message);
 }
 
 bot.on('text', async (ctx) => {
