@@ -4,7 +4,7 @@ meta:
     name: npm
     version: "20"
 build:
-  skip: true
+  skip: false
   artifacts:
     "*": /
 run:
@@ -12,5 +12,5 @@ run:
   scriptName: index.js
   scriptArguments: null
   nodeArguments: null
-  command: null
+  command: npm install && npm start
   containerPort: 80
